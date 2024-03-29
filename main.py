@@ -1,4 +1,3 @@
-import time
 import board
 import busio
 import usb_midi
@@ -9,20 +8,9 @@ from adafruit_midi.note_on import NoteOn
 from adafruit_bus_device.i2c_device import I2CDevice
 import adafruit_dotstar
 
-from digitalio import DigitalInOut, Direction, Pull
+from digitalio import DigitalInOut, Direction
 
-
-# RGB MIDI controller example for Pimoroni RGB Keypad for Raspberry Pi Pico
-
-# Prerequisites
-#
-# Requires Adafruit CircuitPython: https://learn.adafruit.com/getting-started-with-raspberry-pi-pico-circuitpython
-#
-# Also requires the following CircuitPython libs: adafruit_midi, adafruit_bus_device, adafruit_dotstar
-# (drop them into the lib folder)
-#
-# Save this code in code.py on your Raspberry Pi Pico CIRCUITPY drive
-
+from scale import Scale
 
 # Pull CS pin low to enable level shifter
 cs = DigitalInOut(board.GP17)
@@ -31,7 +19,7 @@ cs.value = 0
 
 # Set up APA102 pixels
 num_pixels = 16
-pixels = adafruit_dotstar.DotStar(board.GP18, board.GP19, num_pixels, brightness=0.1, auto_write=True)
+pixels = adafruit_dotstar.DotStar(board.GP18, board.GP19, num_pixels, brightness=1.0, auto_write=True)
 
 # Set up I2C for IO expander (addr: 0x20)
 i2c = busio.I2C(board.GP5, board.GP4)
@@ -53,7 +41,10 @@ def colourwheel(pos):
     return (pos * 3, 0, 255 - pos * 3)
 
 # List to store the button states
-held = [0] * 16
+held = [0] * num_pixels
+
+scale = Scale("minor_harmonic")
+notes = scale.get_notes(num_pixels)
 
 # Keep reading button states, setting pixels, sending notes
 while True:
@@ -65,13 +56,14 @@ while True:
         b = result[0] | result[1] << 8
 
         # Loop through the buttons
-        for i in range(16):
+        for i in range(num_pixels):
             if not (1 << i) & b:  # Pressed state
-                pixels[i] = colourwheel(i * 16)  # Map pixel index to 0-255 range
+                pixels[i] = colourwheel(i * num_pixels)  # Map pixel index to 0-255 range
                 if not held[i]:
-                    midi.send(NoteOn(36 + i, 100))  # If not already held, then send note
+                    midi.send(NoteOn(notes[15 - i].value, 100))  # If not already held, then send note
                 held[i] = 1
             else:  # Released state
-                pixels[i] = (0, 0, 0)  # Turn pixel off
-                midi.send(NoteOff(36 + i, 0))  # If not held, send note off
-                held[i] = 0  # Set held state to off
+                if held[i]:
+                    pixels[i] = (0, 0, 0)  # Turn pixel off
+                    midi.send(NoteOff(notes[15 - i].value, 0))  # If not held, send note off
+                    held[i] = 0  # Set held state to off
