@@ -1,9 +1,6 @@
-from note import Note
-
 class Scale:
-    def __init__(self, scale):
-        self.root = Note(60)
-
+    def __init__(self, scale, root):
+        self.root = root
         with open("scales.csv", "r") as file:
             for line in file:
                 row = line.strip().split(',')
@@ -22,7 +19,6 @@ class Scale:
                 new_note = current_note.modulate(interval)
                 notes.append(new_note)
                 current_note = new_note
-                
                 generated += 1
                 
                 if generated >= num_notes:
