@@ -31,28 +31,29 @@ midi = adafruit_midi.MIDI(midi_out=usb_midi.ports[1], out_channel=0)
 # List to store the button states
 held = [0] * num_pixels
 
-# Load the scales
-scales = []
-with open ("scales.csv", "r") as file:
-    for line in file:
-        row = line.strip().split(',')
-        scales.append(row[0])
-
 # Define the config buttons
 config = [0, 4, 8, 12]
 
 # Initialise the keyboard
-keyboard = Keyboard(scales[0], num_pixels - len(config))
+keyboard = Keyboard(num_pixels - len(config))
 
 # Define the note button mapping
 button_to_note = {15:0, 14:1, 13:2, 11:3, 10:4, 9:5, 7:6, 6:7, 5:8, 3:9, 2:10, 1:11}
+
+# Define the config button mapping
+config_to_function = {
+    12: keyboard.set_next_scale,
+    8: keyboard.modulate_up_one,
+    4: keyboard.modulate_up_octave,
+    0: print
+}
 
 # Colours
 CONFIG_OFF = (15, 30, 27)
 CONFIG_ON  = (126, 247, 229)
 NOTE_OFF = (30, 30, 20)
 NOTE_ON  = (255, 247, 161)
-
+            
 # Keep reading button states, setting pixels, sending notes
 while True:
     with device:
@@ -66,14 +67,24 @@ while True:
         for i in range(num_pixels):
             # Pressed state
             if not (1 << i) & b:
+                # Config buttons change the state of the keyboard
                 if i in config:
                     pixels[i] = CONFIG_ON
-                    print("Config button pressed")
+
+                    if not held[i]:
+                        # Send NoteOff to any held notes during state change
+                        for j, state in enumerate(held):
+                            if j not in config and state == 1:
+                                midi.send(NoteOff(keyboard.keys[button_to_note[j]].value, 0))
+                        
+                        function = config_to_function[i]
+                        function()
                 else:
                     pixels[i] = NOTE_ON
+
                     if not held[i]:
                         # If not already held, then send note
-                        midi.send(NoteOn(keyboard.notes[button_to_note[i]].value, 100))
+                        midi.send(NoteOn(keyboard.keys[button_to_note[i]].value, 100))
                     
                 held[i] = 1
             
@@ -86,6 +97,9 @@ while True:
                     
                     if held[i]:
                         # If not held any longer, send note off
-                        midi.send(NoteOff(keyboard.notes[button_to_note[i]].value, 0))
-                        # Set held state to off
-                        held[i] = 0  
+                        midi.send(NoteOff(keyboard.keys[button_to_note[i]].value, 0))
+            
+                # Set held state to off
+                held[i] = 0  
+
+

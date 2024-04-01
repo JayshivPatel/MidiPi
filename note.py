@@ -1,4 +1,5 @@
 class Note:
+    # Names for debugging
     letters = ["C", "C#", "D", "Eb", "E", "F", "F#", "Ab", "A", "Bb", "B"] 
     
     def __init__(self, value):

@@ -1,23 +1,56 @@
 from scale import Scale
 from note import Note
+import json
 
 class Keyboard:
-    def __init__(self, scale, num_notes):
-        # Default root to C4
-        self.root  = Note(60)
+    def __init__(self, num_notes):
+        # Default root to C3
+        self._root  = Note(60)
+        self._octave = 3
+        self._semitone = 1
+        # Default to first scale
+        self._scale = 0
         self.num_notes = num_notes
-        self.change_scale(scale)
+        # Read scale information from JSON
+        self._scales = []
+        with open ("scales.json", "r") as file:
+            data = json.load(file)
+            for name in data:
+                self._scales.append([name, data[name]])
+        
+        self._change_scale(self._scales[self._scale][1])
 
-    def change_scale(self, scale):
-        self.scale = Scale(scale, self.root)
-        self.notes = self.scale.get_notes(self.num_notes)
+
+    def _change_scale(self, scale):
+        # Regenerates keys
+        self.notes = Scale(scale, self._root)
+        self.keys = self.notes.get_notes(self.num_notes)
+
+    def set_next_scale(self):
+        # Set next scale in JSON
+        self._scale = (self._scale + 1) % len(self._scales)
+        self._change_scale(self._scales[self._scale][1])
     
-    def modulate(self, amount):
-        self.root = self.root.modulate(amount)
-        self.change_scale(self.scale)
+    def _modulate(self, amount):
+        # Modulate root and regenerate keys
+        self._root = self._root.modulate(amount)
+        self._change_scale(self._scales[self._scale][1])
 
     def modulate_up_one(self):
-        self.modulate(1)
+        # Loop back once octave hit
+        if self._semitone == 12:
+            self._modulate(-11)
+            self._semitone = 1
+        else:
+            self._modulate(1)
+            self._semitone += 1
 
     def modulate_up_octave(self):
-        self.modulate(12)
+        # Loop back once at top of keyboard
+        if self._octave == 7:
+            self._modulate(-6 * 12)
+            self._octave = 1
+        else:    
+            self._modulate(12)
+            self._octave += 1
+
