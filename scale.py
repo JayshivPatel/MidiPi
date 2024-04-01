@@ -9,14 +9,14 @@ class Scale:
         notes = [current_note]
 
         # Use intervals to generate notes in the scale
-        while generated < num_notes:
+        while generated < 2 * num_notes:
             for interval in self.scale:
                 new_note = current_note.modulate(interval)
                 notes.append(new_note)
                 current_note = new_note
                 generated += 1
                 
-                if generated >= num_notes:
+                if generated >= 2 * num_notes:
                     break
 
         return notes

@@ -45,8 +45,17 @@ config_to_function = {
     12: keyboard.set_next_scale,
     8: keyboard.modulate_up_one,
     4: keyboard.modulate_up_octave,
-    0: print
+    0: keyboard.set_next_extension,
 }
+
+# Send NoteOn NoteOff MIDI signals
+def turnOn(notes):
+    for note in notes:
+        midi.send(NoteOn(note.value, 100))
+
+def turnOff(notes):
+    for note in notes:
+        midi.send(NoteOff(note.value, 0))
 
 # Colours
 CONFIG_OFF = (15, 30, 27)
@@ -75,7 +84,7 @@ while True:
                         # Send NoteOff to any held notes during state change
                         for j, state in enumerate(held):
                             if j not in config and state == 1:
-                                midi.send(NoteOff(keyboard.keys[button_to_note[j]].value, 0))
+                                turnOff(keyboard.keys[button_to_note[j]])
                         
                         function = config_to_function[i]
                         function()
@@ -84,7 +93,7 @@ while True:
 
                     if not held[i]:
                         # If not already held, then send note
-                        midi.send(NoteOn(keyboard.keys[button_to_note[i]].value, 100))
+                       turnOn(keyboard.keys[button_to_note[i]])
                     
                 held[i] = 1
             
@@ -97,7 +106,7 @@ while True:
                     
                     if held[i]:
                         # If not held any longer, send note off
-                        midi.send(NoteOff(keyboard.keys[button_to_note[i]].value, 0))
+                        turnOff(keyboard.keys[button_to_note[i]])
             
                 # Set held state to off
                 held[i] = 0  
