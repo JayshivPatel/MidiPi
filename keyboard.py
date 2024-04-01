@@ -47,8 +47,8 @@ class Keyboard:
 
     def modulate_up_octave(self):
         # Loop back once at top of keyboard
-        if self._octave == 7:
-            self._modulate(-6 * 12)
+        if self._octave == 5:
+            self._modulate(-4 * 12)
             self._octave = 1
         else:    
             self._modulate(12)
