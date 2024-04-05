@@ -1,5 +1,11 @@
+from recorded_note import RecordedNote
 from scale import Scale
 from note import Note
+import usb_midi
+
+import adafruit_midi
+from adafruit_midi.note_off import NoteOff
+from adafruit_midi.note_on import NoteOn
 import json
 
 class Keyboard:
@@ -11,6 +17,9 @@ class Keyboard:
         # Default to first scale
         self._scale = 0
         self.num_notes = num_notes
+        self.out_channel = 0
+        # Set default USB MIDI out for direct playback
+        self.midi = adafruit_midi.MIDI(midi_out=usb_midi.ports[1], out_channel=self.out_channel)
 
         # Read scale information from JSON
         self._scales = []
@@ -34,6 +43,7 @@ class Keyboard:
         # Regenerates keys
         notes = Scale(scale, self._root).get_notes(self.num_notes)
         self.keys = self.extend(notes, self._extensions[self._chord][1])
+        print(scale)
 
     def set_next_scale(self):
         # Set next scale in JSON
@@ -80,3 +90,14 @@ class Keyboard:
         # Set next extension in JSON
         self._chord = (self._chord + 1) % len(self._extensions)
         self._change_scale(self.get_current_scale())
+
+    # Send NoteOn NoteOff MIDI signals
+    def turnOn(self, key):
+        notes = self.keys[key]
+        for note in notes:
+            self.midi.send(NoteOn(note.value, 100))
+
+    def turnOff(self, key):
+        notes = self.keys[key]
+        for note in notes:
+            self.midi.send(NoteOff(note.value, 0))

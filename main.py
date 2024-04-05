@@ -1,10 +1,6 @@
 import board
 import busio
-import usb_midi
 
-import adafruit_midi
-from adafruit_midi.note_off import NoteOff
-from adafruit_midi.note_on import NoteOn
 from adafruit_bus_device.i2c_device import I2CDevice
 import adafruit_dotstar
 
@@ -24,9 +20,6 @@ pixels = adafruit_dotstar.DotStar(board.GP18, board.GP19, num_pixels, brightness
 # Set up I2C for IO expander (addr: 0x20)
 i2c = busio.I2C(board.GP5, board.GP4)
 device = I2CDevice(i2c, 0x20)
-
-# Set USB MIDI up on channel 0
-midi = adafruit_midi.MIDI(midi_out=usb_midi.ports[1], out_channel=0)
 
 # List to store the button states
 held = [0] * num_pixels
@@ -48,14 +41,6 @@ config_to_function = {
     0: keyboard.set_next_extension,
 }
 
-# Send NoteOn NoteOff MIDI signals
-def turnOn(notes):
-    for note in notes:
-        midi.send(NoteOn(note.value, 100))
-
-def turnOff(notes):
-    for note in notes:
-        midi.send(NoteOff(note.value, 0))
 
 # Colours
 CONFIG_OFF = (15, 30, 27)
@@ -84,7 +69,7 @@ while True:
                         # Send NoteOff to any held notes during state change
                         for j, state in enumerate(held):
                             if j not in config and state == 1:
-                                turnOff(keyboard.keys[button_to_note[j]])
+                                keyboard.turnOff(button_to_note[j])
                         
                         function = config_to_function[i]
                         function()
@@ -93,7 +78,7 @@ while True:
 
                     if not held[i]:
                         # If not already held, then send note
-                       turnOn(keyboard.keys[button_to_note[i]])
+                        keyboard.turnOn(button_to_note[i])
                     
                 held[i] = 1
             
@@ -106,7 +91,7 @@ while True:
                     
                     if held[i]:
                         # If not held any longer, send note off
-                        turnOff(keyboard.keys[button_to_note[i]])
+                        keyboard.turnOff(button_to_note[i])
             
                 # Set held state to off
                 held[i] = 0  
