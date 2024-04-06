@@ -1,22 +1,17 @@
 class Scale:
     def __init__(self, scale, root):
-        self.root = root
+        self.root = root.get_lowest_note()
         self.scale = scale
 
-    def get_notes(self, num_notes):
-        generated = 0
+    def get_notes(self):
         current_note = self.root
         notes = [current_note]
 
         # Use intervals to generate notes in the scale
-        while generated < 2 * num_notes:
+        while current_note.value < self.root.value + 72:
             for interval in self.scale:
                 new_note = current_note.modulate(interval)
                 notes.append(new_note)
                 current_note = new_note
-                generated += 1
-                
-                if generated >= 2 * num_notes:
-                    break
 
         return notes

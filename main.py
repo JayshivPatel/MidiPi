@@ -96,11 +96,10 @@ while True:
                     else:
                         pixels[i] = NOTE_OFF
 
+
                     if held[i]:
                         # If not held any longer, send note off
                         keyboard.turnOff(button_to_note[i])
             
                 # Set held state to off
                 held[i] = 0
-
-        time.sleep(0.01)

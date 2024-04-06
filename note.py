@@ -14,3 +14,6 @@ class Note:
     
     def get_letter(self):
         return self.letters[(self.value % 12)]
+    
+    def get_lowest_note(self):
+        return Note((self.value % 12) + 36)
