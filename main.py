@@ -41,12 +41,13 @@ config_to_function = {
     0: keyboard.set_next_extension,
 }
 
-
 # Colours
 CONFIG_OFF = (15, 30, 27)
 CONFIG_ON  = (126, 247, 229)
 NOTE_OFF = (30, 30, 20)
 NOTE_ON  = (255, 247, 161)
+ROOT_OFF = (30, 15, 20)
+ROOT_ON = (250, 125, 202)
             
 # Keep reading button states, setting pixels, sending notes
 while True:
@@ -74,7 +75,10 @@ while True:
                         function = config_to_function[i]
                         function()
                 else:
-                    pixels[i] = NOTE_ON
+                    if keyboard.keys[button_to_note[i]][0].get_letter() == keyboard._root.get_letter():
+                        pixels[i] = ROOT_ON
+                    else:
+                        pixels[i] = NOTE_ON
 
                     if not held[i]:
                         # If not already held, then send note
@@ -87,13 +91,16 @@ while True:
                 if i in config:
                     pixels[i] = CONFIG_OFF
                 else:
-                    pixels[i] = NOTE_OFF
-                    
+                    if keyboard.keys[button_to_note[i]][0].get_letter() == keyboard._root.get_letter():
+                        pixels[i] = ROOT_OFF
+                    else:
+                        pixels[i] = NOTE_OFF
+
                     if held[i]:
                         # If not held any longer, send note off
                         keyboard.turnOff(button_to_note[i])
             
                 # Set held state to off
-                held[i] = 0  
+                held[i] = 0
 
-
+        time.sleep(0.01)

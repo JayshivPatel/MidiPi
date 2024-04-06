@@ -1,4 +1,3 @@
-from recorded_note import RecordedNote
 from scale import Scale
 from note import Note
 import usb_midi
@@ -43,7 +42,7 @@ class Keyboard:
         # Regenerates keys
         notes = Scale(scale, self._root).get_notes(self.num_notes)
         self.keys = self.extend(notes, self._extensions[self._chord][1])
-        print(scale)
+        print(self.get_current_scale_name())
 
     def set_next_scale(self):
         # Set next scale in JSON
@@ -57,6 +56,9 @@ class Keyboard:
 
     def get_current_scale(self):
         return self._scales[self._scale][1]
+    
+    def get_current_scale_name(self):
+        return self._scales[self._scale][0]
 
     def modulate_up_one(self):
         # Loop back once octave hit
@@ -95,9 +97,11 @@ class Keyboard:
     def turnOn(self, key):
         notes = self.keys[key]
         for note in notes:
+            print(note.name())
             self.midi.send(NoteOn(note.value, 100))
 
     def turnOff(self, key):
         notes = self.keys[key]
         for note in notes:
             self.midi.send(NoteOff(note.value, 0))
+

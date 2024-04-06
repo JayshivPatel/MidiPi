@@ -1,6 +1,6 @@
 class Note:
     # Names for debugging
-    letters = ["C", "C#", "D", "Eb", "E", "F", "F#", "Ab", "A", "Bb", "B"] 
+    letters = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"] 
     
     def __init__(self, value):
         self.value = value
@@ -9,7 +9,8 @@ class Note:
         return Note(self.value + amount)
         
     def name(self):
-        octave = int(self.value / 12)
-        letter = self.value % 12
-
-        return self.letters[letter] + str(octave)
+        octave = int(self.value / 12) - 2
+        return self.get_letter() + str(octave)
+    
+    def get_letter(self):
+        return self.letters[(self.value % 12)]
