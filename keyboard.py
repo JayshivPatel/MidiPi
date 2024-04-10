@@ -46,8 +46,10 @@ class Keyboard:
         
         for i in range(self.num_notes):
             for extension in self._extensions[self._extension][1]:
-                if self._root.value + extension + self._get_octave_offset() >= 36 and self._root.value + extension + self._get_octave_offset() <= 119:
+                if self._root.value + extension + self._get_octave_offset() >= 36 and self._root.value + extension + self._get_octave_offset() <= 119 and i + extension + self._get_octave_offset() < len(self.notes):
                     self.keys[i].append(self.notes[i + extension + self._get_octave_offset()])
+                else:
+                    self.set_next_extension()
 
     def _get_octave_offset(self):
         return (self._octave - 1) * len(self.get_current_scale())
